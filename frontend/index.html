@@ -2,33 +2,355 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TinyLlama Chat</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
-    textarea { width: 100%; height: 100px; }
-    pre { background: #f3f3f3; padding: 1rem; white-space: pre-wrap; }
-    button { margin-top: 1rem; }
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 1rem;
+      max-width: 700px;
+      margin: 0 auto;
+      background: #f9f9f9;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      color: #222;
+    }
+
+    .container {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #555;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .control-group label {
+      margin-bottom: 0.3rem;
+      font-size: 0.85rem;
+    }
+
+    .control-group input {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .control-group input:focus {
+      outline: none;
+      border-color: #0066cc;
+    }
+
+    .value-display {
+      font-size: 0.9rem;
+      color: #0066cc;
+      font-weight: 500;
+      margin-top: 0.2rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #sendBtn {
+      flex: 1;
+      background: #0066cc;
+      color: white;
+    }
+
+    #sendBtn:hover:not(:disabled) {
+      background: #0052a3;
+    }
+
+    #sendBtn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    #clearBtn {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    #clearBtn:hover {
+      background: #e0e0e0;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-right: 0.5rem;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0066cc;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .response-section {
+      margin-top: 2rem;
+    }
+
+    .response-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+      color: #555;
+    }
+
+    #response {
+      background: #f3f3f3;
+      padding: 1rem;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      min-height: 100px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+
+    .error {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 1rem;
+      border-radius: 4px;
+      color: #856404;
+      margin-top: 0.5rem;
+    }
+
+    .error.critical {
+      background: #f8d7da;
+      border-left-color: #dc3545;
+      color: #721c24;
+    }
+
+    .success {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 1rem;
+      border-radius: 4px;
+      color: #155724;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      body {
+        padding: 0.5rem;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
   <h1>TinyLlama Chat</h1>
-  <textarea id="prompt" placeholder="Ask TinyLlama something..."></textarea>
-  <br />
-  <button onclick="sendPrompt()">Send</button>
-  <h3>Response:</h3>
-  <pre id="response"></pre>
+  <div class="container">
+    <div class="form-group">
+      <label for="prompt">Your prompt:</label>
+      <textarea id="prompt" placeholder="Ask TinyLlama something..."></textarea>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="temperature">Temperature (Creativity)</label>
+        <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7" />
+        <div class="value-display"><span id="tempValue">0.7</span></div>
+      </div>
+      <div class="control-group">
+        <label for="maxTokens">Max Tokens (Length)</label>
+        <input type="number" id="maxTokens" min="10" max="4096" value="256" />
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="sendBtn" onclick="sendPrompt()">Send</button>
+      <button id="clearBtn" onclick="clearChat()">Clear</button>
+    </div>
+
+    <div id="errorContainer"></div>
+
+    <div class="response-section">
+      <div class="response-label">Response:</div>
+      <pre id="response">(Waiting for response...)</pre>
+    </div>
+  </div>
 
   <script>
+    // Update temperature display
+    document.getElementById('temperature').addEventListener('input', (e) => {
+      document.getElementById('tempValue').textContent = e.target.value;
+    });
+
     async function sendPrompt() {
-      const prompt = document.getElementById('prompt').value;
-      const res = await fetch('http://localhost:8080/completion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, n_predict: 128, temperature: 0.7 })
-      });
-      const data = await res.json();
-      document.getElementById('response').textContent = data.content || "(no response)";
+      const prompt = document.getElementById('prompt').value.trim();
+      const sendBtn = document.getElementById('sendBtn');
+      const errorContainer = document.getElementById('errorContainer');
+      const responseDiv = document.getElementById('response');
+
+      // Validation
+      if (!prompt) {
+        showError('Please enter a prompt', 'error');
+        return;
+      }
+
+      // Disable button and show loading state
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<span class="spinner"></span>Sending...';
+      errorContainer.innerHTML = '';
+      responseDiv.textContent = 'Generating response...';
+
+      try {
+        const temperature = parseFloat(document.getElementById('temperature').value);
+        const maxTokens = parseInt(document.getElementById('maxTokens').value);
+
+        const response = await fetch('/completion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt,
+            n_predict: maxTokens,
+            temperature
+          }),
+          timeout: 120000 // 120 second timeout
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.content) {
+          showError('No response content from model', 'error');
+          responseDiv.textContent = '(No response)';
+          return;
+        }
+
+        responseDiv.textContent = data.content;
+        showSuccess('Response generated successfully');
+
+      } catch (error) {
+        console.error('Error:', error);
+        let message = error.message;
+
+        if (error.message.includes('Failed to fetch')) {
+          message = 'Cannot reach server. Is the backend running?';
+        } else if (error.message.includes('timeout')) {
+          message = 'Request timed out. The model may be busy or offline.';
+        }
+
+        showError(message, 'critical');
+        responseDiv.textContent = '(Error - see message above)';
+
+      } finally {
+        // Re-enable button
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send';
+      }
     }
+
+    function clearChat() {
+      document.getElementById('prompt').value = '';
+      document.getElementById('response').textContent = '(Waiting for response...)';
+      document.getElementById('errorContainer').innerHTML = '';
+      document.getElementById('prompt').focus();
+    }
+
+    function showError(message, severity = 'error') {
+      const container = document.getElementById('errorContainer');
+      const div = document.createElement('div');
+      div.className = `error ${severity === 'critical' ? 'critical' : ''}`;
+      div.textContent = message;
+      container.innerHTML = '';
+      container.appendChild(div);
+    }
+
+    function showSuccess(message) {
+      const container = document.getElementById('errorContainer');
+      const div = document.createElement('div');
+      div.className = 'success';
+      div.textContent = message;
+      container.innerHTML = '';
+      container.appendChild(div);
+    }
+
+    // Focus on prompt field on load
+    document.getElementById('prompt').focus();
   </script>
 </body>
 </html>

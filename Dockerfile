@@ -5,7 +5,7 @@ RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     git build-essential cmake curl wget libopenblas-dev \
     libcurl4-openssl-dev \
-    supervisor busybox-static && \
+    supervisor python3 && \
     apt-get clean
 
 # Set up working directory
@@ -26,8 +26,9 @@ RUN mkdir -p /app/models && \
 
 
 
-# Copy frontend and supervisor config into image
+# Copy frontend, server, and supervisor config into image
 COPY frontend /app/frontend
+COPY server.py /app/server.py
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 
