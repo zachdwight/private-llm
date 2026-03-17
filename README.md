@@ -12,6 +12,20 @@ Built with [TinyLLaMA](https://huggingface.co/cognitivecomputations/TinyLlama-1.
 
 ---
 
+## 📖 About
+
+**Why a local chatbot?** Most AI tools require sending your data to the cloud. Not here. This project puts a working language model on your machine—no subscriptions, no API keys, no monitoring. It's built for people who want:
+
+- **Complete privacy**: Your conversations never leave your computer
+- **No internet required**: Works offline after the one-time setup
+- **Full control**: Adjust creativity, response length, and behavior on the fly
+- **Learning-friendly**: See exactly how prompts, temperature, and tokens affect the model's output
+- **Minimal overhead**: The entire setup (model + server) is ~2GB and runs on modest hardware
+
+Think of it as your own personal, offline ChatGPT—useful for research, homework, brainstorming, and experimentation without the privacy concerns or API costs.
+
+---
+
 ## ⚡ Quick Start
 
 ```bash
